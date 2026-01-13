@@ -10,24 +10,37 @@ public class practica7 {
     public void principal() {
         int files = 9;
         int cols = 9;
+        int maxJugadors = 2;
         char[][] taulell = new char[files][cols];
+        String[] jugadors = new String[maxJugadors];
+        boolean partida = true;
+        boolean abandonar = false;
 
         generarTaulell(taulell);
         imprimirTaulell(taulell);
-
-        /*
-        metodo para nombres 
-            validacion no esta vacio
-        como decidir orden? + primer turno blancas
-            ejemplo -> if turno == 1 -> blancas == true
-            metodo de decision de turnos
-        pedir casilla origen + casilla destino -> recomendacion profe usar (abs) para no repetir codigo (destino-origen para saber cuanto se mueve -> en caso de caballo??)
-        parte dificil -> validacion de movimiento
-            lado correcto?
-            no atraviesa ninguna ficha propia?
-
-        */
         
+        mostrarMissatgeInici(jugadors);
+
+        //boolean de blancas -> if true mueven blancas
+        //contador de turnos (hace falta?)
+        //comprobar que las casillas inicio y fin son plausibles (1 o 2?) -> o abandonar?
+            //1 blancas y 1 negras o los 2 juntos?
+            //para eso mirar casilla de origen, en que tipo de pieza cae?
+            //varios else if dependiendo de en que tipo de pieza cae?
+            //luego mirar el movimiento que quiere hacer, concuerda con el tipo de ficha? -> intentar usar 1 para los 2 bandos
+            //interrumpe a alguna ficha de tu tablero?
+            //si haces ese movimiento, tu rey queda en jaque? -> como puedo hacer esto?
+            //si es legal, matas a alguna ficha del contrario?
+            //banquillo de muertes
+            //si el peon llega al final, cambia a cualquier ficha a eleccion
+            //actualizar y mostrar tablero
+            //si blancas = true -> false
+            //registrar movimiento en un arraylist
+        //repetir
+
+        while(partida && !abandonar) {
+
+        }
     
         sc.close();
     }
@@ -105,4 +118,47 @@ public class practica7 {
             System.out.println("");
         }
     }
+
+    public String preguntarNom(String color) {
+        String nom = "";
+
+        do {
+            System.out.print("Jugador " + color + ": ");
+            nom = sc.nextLine();
+
+            if (nom.isEmpty()) {
+                System.out.println("El nom no pot estar buit. Si us plau, escriu un nom vàlid.");
+            }
+            
+        } while (nom.isEmpty());
+        return nom;
+    }
+
+    public void mostrarMissatgeInici(String[] jugadors) {
+        System.out.println("Benvinguts al joc d'escacs!");
+        System.out.println("Si us plau, introduïu els noms dels jugadors:\n");
+
+        jugadors[0] = preguntarNom("1 (blanques)");
+        jugadors[1] = preguntarNom("2 (negres)");
+    }
+
+    public int conversionLetras(char letra) {
+        int casilla = 0;
+
+        letra = Character.toLowerCase(letra);
+        casilla = letra - 'a' + 1;
+
+        return casilla;
+    }
+
+    public boolean movimentLegal(String color, String casillaOrigen) {
+        boolean legal = false;
+
+        if (color.equals("blanques")) {
+            
+        }
+
+        return legal;
+    }
+
 }
