@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 //import java.util.InputMismatchException;
 public class practica7 {
@@ -13,13 +14,45 @@ public class practica7 {
         int maxJugadors = 2;
         char[][] taulell = new char[files][cols];
         String[] jugadors = new String[maxJugadors];
+        ArrayList<String> movimentsBlanques = new ArrayList<>();
+        ArrayList<String> movimentsNegres = new ArrayList<>();
         boolean partida = true;
         boolean abandonar = false;
+        String casellaOrigen = "";
+        String casellaFinal = "";
 
         generarTaulell(taulell);
         imprimirTaulell(taulell);
         
         mostrarMissatgeInici(jugadors);
+
+        boolean blanques = true; //blanques -> nouen blanques, !blanques -> mouen negres
+
+        while(partida && !abandonar) {
+            if (blanques) {
+                System.out.println("\nTorn de les blanques: ");
+                casellaOrigen = demanarCasella("origen");
+                casellaFinal = demanarCasella("final");
+
+                movimentsBlanques.add(casellaOrigen + ", " + casellaFinal);
+
+                System.out.println("Moviment: " + casellaOrigen + ", " + casellaFinal + "\n");
+                imprimirTaulell(taulell);
+
+            } else { //mueven negras
+                System.out.println("\nTorn de les negres: ");
+                casellaOrigen = demanarCasella("origen");
+                casellaFinal = demanarCasella("final");
+
+                movimentsNegres.add(casellaOrigen + ", " + casellaFinal);
+
+                System.out.println("Moviment: " + casellaOrigen + ", " + casellaFinal + "\n");
+                imprimirTaulell(taulell);
+
+            }
+
+            blanques = !blanques; //cambia de torn
+        }
 
         //boolean de blancas -> if true mueven blancas
         //contador de turnos (hace falta?)
@@ -37,19 +70,17 @@ public class practica7 {
             //si blancas = true -> false
             //registrar movimiento en un arraylist
         //repetir
-
-        while(partida && !abandonar) {
-
-        }
     
         sc.close();
     }
 
+    //metode auxiliar per iniciar el taulell
     public void generarTaulell(char[][] taulell) {
         inicialitzarTaulell(taulell);
         generarPeces(taulell);
     }
 
+    //inicialitza totes les caselles del taulell, posant "." 
     public void inicialitzarTaulell(char[][] taulell) {
         taulell[0][0] = ' ';
 
@@ -72,6 +103,7 @@ public class practica7 {
         }
     }
 
+    //genera las peces blanques i negres
     public void generarPeces(char[][] taulell) {
         //generar peones
         for(int i = 1; i < taulell.length; i++) {
@@ -119,46 +151,75 @@ public class practica7 {
         }
     }
 
-    public String preguntarNom(String color) {
-        String nom = "";
-
-        do {
-            System.out.print("Jugador " + color + ": ");
-            nom = sc.nextLine();
-
-            if (nom.isEmpty()) {
-                System.out.println("El nom no pot estar buit. Si us plau, escriu un nom vàlid.");
-            }
-            
-        } while (nom.isEmpty());
-        return nom;
-    }
-
     public void mostrarMissatgeInici(String[] jugadors) {
         System.out.println("Benvinguts al joc d'escacs!");
-        System.out.println("Si us plau, introduïu els noms dels jugadors:\n");
+        System.out.println("Introduïu els noms dels jugadors per començar la partida:\n");
+
 
         jugadors[0] = preguntarNom("1 (blanques)");
         jugadors[1] = preguntarNom("2 (negres)");
     }
 
-    public int conversionLetras(char letra) {
-        int casilla = 0;
+    public String preguntarNom(String color) {
+        String nom = "";
+        boolean valid = true;
 
-        letra = Character.toLowerCase(letra);
-        casilla = letra - 'a' + 1;
+        do {
+            System.out.print("Jugador " + color + ": ");
+            nom = sc.nextLine();
+            valid = true;
 
-        return casilla;
+            if (nom.isEmpty()) {
+                System.out.println("[Error] El nom no pot estar buit. Torna-ho a intentar.");
+                valid = false;
+
+            } else if (nom.matches("\\d+")) {
+                System.out.println("[Error] El nom no pot constar de números. Torna-ho a intentar.");
+                valid = false;
+            }    
+        } while (!valid);
+        return nom;
     }
 
-    public boolean movimentLegal(String color, String casillaOrigen) {
-        boolean legal = false;
+    public String demanarCasella(String tipusCasella) {
+        String casella = "";
+        boolean valid = true;
 
-        if (color.equals("blanques")) {
-            
-        }
+        do {
+            System.out.print("Casella " + tipusCasella + " :");
+            casella = sc.nextLine();
+            valid = true;
 
-        return legal;
+            if (casella.isEmpty()) {
+                System.out.println("[Error] La casella no pot quedar buida. Torna-ho a intentar.");
+                valid = false;
+
+            } else if (casella.length() != 2) {
+                System.out.println("[Error] Format incorrecte. La casella ha de ser una lletra seguida d'un número (ex: e2).");
+                valid = false;
+
+            } else if (casella.charAt(0) < 'a' || casella.charAt(0) > 'h' || casella.charAt(1) < '1' || casella.charAt(1) > '8') {
+                System.out.println("[Error] La casella ha d'estar entre 'a1' i 'h8'. Torna-ho a intentar.");
+                valid = false;
+            }
+
+        } while (!valid);
+
+        return casella;
+    }
+
+    //converteix el format donat per cada casella "c7", en un format nunmeric "3,7"
+    public int[] conversioLletres(String casella) {
+        int[] casellaFinal = new int[2];
+        
+        char lletra = casella.charAt(0);
+
+        lletra = Character.toLowerCase(lletra);
+        casellaFinal[1] = Character.toLowerCase(casella.charAt(0)) - 'a' + 1;
+
+        casellaFinal[0] = casella.charAt(1) - '0';
+
+        return casellaFinal;
     }
 
 }
