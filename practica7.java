@@ -7,20 +7,17 @@ public class practica7 {
         practica7 p = new practica7();
         p.principal();    
     }
-
-    //comprobar que las casillas inicio y fin son plausibles (1 o 2?) -> o abandonar?
-        //1 blancas y 1 negras o los 2 juntos?
-        //para eso mirar casilla de origen, en que tipo de pieza cae?
-        //varios else if dependiendo de en que tipo de pieza cae?
-        //luego mirar el movimiento que quiere hacer, concuerda con el tipo de ficha? -> intentar usar 1 para los 2 bandos
-        //interrumpe a alguna ficha de tu tablero?
-        //si haces ese movimiento, tu rey queda en jaque? -> como puedo hacer esto?
-        //si es legal, matas a alguna ficha del contrario?
-        //banquillo de muertes
-        //si el peon llega al final, cambia a cualquier ficha a eleccion
-        //actualizar y mostrar tablero
-        //si blancas = true -> false
-        //registrar movimiento en un arraylist
+        
+    //me falta algo pero no me acuerdo
+    //banquillo de muertes
+    //si el peon llega al final, cambia a cualquier ficha a eleccion
+    //actualizar y mostrar tablero
+    //registrar movimiento en un arraylist
+    //si haces ese movimiento, tu rey queda en jaque? -> como puedo hacer esto?
+    //enroque
+    //jaque
+    //jaque mate
+    //hay que implementar que no se puede matar al rei
     //repetir
 
     public void principal() {
@@ -113,10 +110,10 @@ public class practica7 {
         }
 
         // Rei i reina
-        taulell[filaPeçesBlanques][4] = 'K';
-        taulell[filaPeçesBlanques][5] = 'Q';
-        taulell[filaPeçesNegres][4] = 'q';
-        taulell[filaPeçesNegres][5] = 'k';
+        taulell[filaPeçesBlanques][4] = 'Q';
+        taulell[filaPeçesBlanques][5] = 'K';
+        taulell[filaPeçesNegres][4] = 'k';
+        taulell[filaPeçesNegres][5] = 'q';
     }
 
     public char[][] generarTaulell() {
@@ -172,11 +169,11 @@ public class practica7 {
     //posiblemente en el futuro devuelva el movimiento ya verificado
     public void torn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
         boolean valid =  false;
-        boolean validacioPeça = false;
 
         System.out.println("\nTorn de les " + torn + ": ");
 
         String casellaOrigen = "";
+
         do {
             casellaOrigen = demanarCasella("origen");
 
@@ -193,6 +190,11 @@ public class practica7 {
 
 
         //para que torn no sea tan grande, crear un metodo a parte que se llame validarMoviment con todo esto
+    }
+
+    public void validarMoviment(char[][] taulell, boolean blanquesBool, char[] peçesBlanques, char[] peçesNegres, String casellaOrigen) {
+        boolean validacioPeça = false;
+
         do {
             validacioPeça = false;
             String casellaFinal = demanarCasella("final");
@@ -200,24 +202,77 @@ public class practica7 {
             int[] casellaOrigenArray = conversioLletres(casellaOrigen);
             int[] casellaDestiArray = conversioLletres(casellaFinal);
 
-            String peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanques, casellaDestiArray, taulell);
+            String peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanquesBool, casellaDestiArray, taulell);
             Boolean peçaCami = peçaCami(casellaDestiArray, casellaOrigenArray, taulell);
 
             switch (taulell[casellaOrigenArray[0]][casellaOrigenArray[1]]) {
                 case 'P':
                 case 'p':
-                    validacioPeça = validarPeo(casellaOrigenArray, casellaDestiArray, blanques, peçaDesti, peçaCami);
+                    validacioPeça = validarPeo(casellaOrigenArray, casellaDestiArray, blanquesBool, peçaDesti, peçaCami);
 
                     if (!validacioPeça) {
-                        System.out.println("[Error] Moviment invàlid");
+                        missatjeError(validacioPeça, peçaDesti, "peó");
                     }
-
                     break;
-            
-                default:
+
+                case 't':
+                case 'T':
+                    validacioPeça = validarTorre(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+
+                    if (!validacioPeça) {
+                        missatjeError(peçaCami, peçaDesti, "torre");
+                    }
+                    break;
+
+                case 'a':
+                case 'A':
+                    validacioPeça = validarAlfil(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+
+                    if (!validacioPeça) {
+                        missatjeError(peçaCami, peçaDesti, "alfil");
+                    }
+                    break;
+
+                case 'c':
+                case 'C':
+                    validacioPeça = validarCavall(casellaOrigenArray, casellaDestiArray, peçaDesti);
+
+                    if (!validacioPeça) {
+                        missatjeError(peçaCami, peçaDesti, "cavall");
+                    }
+                    break;
+
+                case 'q':
+                case 'Q':
+                    validacioPeça = validarReina(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+
+                    if (!validacioPeça) {
+                        missatjeError(peçaCami, peçaDesti, "reina");
+                    }
+                    break;
+
+                case 'k':
+                case 'K':
+                    validacioPeça = validarRei(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+
+                    if (!validacioPeça) {
+                        missatjeError(peçaCami, peçaDesti, "rei");
+                    }
                     break;
             }
         } while (!validacioPeça);
+    }
+
+    public void missatjeError(boolean peçaCami, String peçaDesti, String tipusPeça) {
+        if (peçaCami && !tipusPeça.equals("cavall")) {
+            System.out.println("[Error] No pots saltar per sobre d'altres peces. Hi ha una peça bloquejant el camí");
+
+        } else if (peçaDesti.equals("aliada")) {
+            System.out.println("[Error] Aquest moviment no és vàlid segons les regles de moviment de la " + tipusPeça + ".");
+
+        } else {
+            System.out.println("[Error] Moviment invàlid per la " + tipusPeça + ".");
+        }
     }
 
     public String demanarCasella(String tipusCasella) {
@@ -304,62 +359,159 @@ public class practica7 {
 
     //comprova si durant el recorregut de la peça hi ha algun "obstacle"
     public boolean peçaCami(int[] casellaDesti, int[] casellaOrigen, char[][] taulell) {
-        boolean peçaCami = false;
-        int desplaçamentVertical = casellaDesti[1] - casellaOrigen[1];
-        int desplaçamentHoritzontal = casellaDesti[0] - casellaOrigen[0];
-        int direccioFila;
-        int direccioCol;
-        int desplaçament = 0;
+        boolean hiHaPeca = false;
 
-        if (desplaçamentHoritzontal == 0) {
-            desplaçament = Math.abs(desplaçamentVertical);
-        } else {
-            desplaçament = Math.abs(desplaçamentHoritzontal);
-        }
+        int desplaçamentFila = casellaDesti[0] - casellaOrigen[0];
+        int desplaçamentCol = casellaDesti[1] - casellaOrigen[1];
 
-        if (casellaDesti[0] > casellaOrigen[0]) {
+        int direccioFila = 0;
+        int direccioCol = 0;
+        int desplaçamentPeça = 0;
+
+        //seqüènica de condicionals que comroba si el moviment es positiu o negatiu
+        if (desplaçamentFila > 0) {
             direccioFila = 1;
-        } else {
+        }
+        if (desplaçamentFila < 0) {
             direccioFila = -1;
         }
-        
-        if (casellaDesti[1] > casellaOrigen[1]) {
+
+        if (desplaçamentCol > 0) {
             direccioCol = 1;
-        } else {
+        }
+        if (desplaçamentCol < 0) {
             direccioCol = -1;
         }
 
-        for (int i = 1; i < desplaçament && peçaCami == false; i++) {
-            if (taulell[casellaOrigen[0] + i * direccioFila][casellaOrigen[1] + i * direccioCol] != '.') {
-                peçaCami = true;
+        //calcul del desplaçament
+        if (Math.abs(desplaçamentFila) > Math.abs(desplaçamentCol)) {
+            desplaçamentPeça = Math.abs(desplaçamentFila);
+        } else {
+            desplaçamentPeça = Math.abs(desplaçamentCol);
+        }
+
+        for (int i = 1; i < desplaçamentPeça && hiHaPeca == false; i++) {
+            int filaActual = casellaOrigen[0] + i * direccioFila;
+            int colActual = casellaOrigen[1] + i * direccioCol;
+
+            if (taulell[filaActual][colActual] != '.') {
+                hiHaPeca = true;
             }
         }
 
-        return peçaCami;
+        return hiHaPeca;
     }
 
     //valida moviment peo 
     public boolean validarPeo(int[] casellaOrigen, int[] casellaDesti, boolean blanques, String peçaDesti, boolean peçaCami) {
         boolean valid = false;
-        
-        int desplaçamentVertical = casellaDesti[1] - casellaOrigen[1];
-        int desplaçamentHoritzontal = casellaDesti[0] - casellaOrigen[0];
+        int desplaçamentVertical = casellaDesti[0] - casellaOrigen[0];
+        int desplaçamentHoritzontal = casellaDesti[1] - casellaOrigen[1];
+        int direccio = 0;
 
-        int fila = casellaOrigen[0];
-        int columna = casellaOrigen[1];
+        if (blanques) {
+            direccio = -1; // blanques puigen
+        } else {
+            direccio = 1;  // negres baixen
+        }
 
-        if ((blanques && fila == 7) || (!blanques && fila == 2)) {
-            if ((desplaçamentVertical == 2 && desplaçamentHoritzontal == 0 && peçaDesti.equals("neutre") && !peçaCami)) {
+        // blancas: primer movimiento de 2 casillas
+        if ((blanques && casellaOrigen[0] == 7 && desplaçamentVertical == -2 && desplaçamentHoritzontal == 0) || 
+            (!blanques && casellaOrigen[0] == 2 && desplaçamentVertical == 2 && desplaçamentHoritzontal == 0)) {
+            if (peçaDesti.equals("neutre") && !peçaCami) {
                 valid = true;
             }
         }
 
-        if (desplaçamentVertical == 1 && desplaçamentHoritzontal == 0 && peçaDesti.equals("neutre") && !peçaCami) {
+        if (desplaçamentVertical == direccio && desplaçamentHoritzontal == 0) {
+            if (peçaDesti.equals("neutre") && !peçaCami) {
+                valid = true;
+            }
+        }
+
+        if (desplaçamentVertical == direccio && Math.abs(desplaçamentHoritzontal) == 1 && peçaDesti.equals("enemiga")) {
             valid = true;
         }
 
-        if ((peçaDesti.equals("enemiga") && !peçaCami) && (desplaçamentVertical == 1 && desplaçamentHoritzontal == 1)) {
-            valid = true;
+        return valid;
+    }
+
+    public boolean validarTorre(int[] casellaOrigen, int[] casellaDesti, String peçaDesti, boolean peçaCami) {
+        boolean valid = false;
+        int desplaçamentVertical = casellaDesti[0] - casellaOrigen[0];
+        int desplaçamentHoritzontal = casellaDesti[1] - casellaOrigen[1];
+
+        if ((desplaçamentVertical == 0 && desplaçamentHoritzontal != 0) || 
+            (desplaçamentVertical != 0 && desplaçamentHoritzontal == 0)) {
+            if (!peçaCami && !peçaDesti.equals("aliada")) {
+                valid = true;
+            }
+        }
+
+        return valid;
+    }
+
+    public boolean validarAlfil(int[] casellaOrigen, int[] casellaDesti, String peçaDesti, boolean peçaCami) {
+        boolean valid = false;
+        int desplaçamentVertical = Math.abs(casellaDesti[0] - casellaOrigen[0]);
+        int desplaçamentHoritzontal = Math.abs(casellaDesti[1] - casellaOrigen[1]);
+        
+        if ((desplaçamentHoritzontal == desplaçamentVertical) && desplaçamentHoritzontal > 0) {
+            if (!peçaCami && !peçaDesti.equals("aliada")) {
+                valid = true;
+            }
+        }
+
+        return valid;
+    }
+
+    public boolean validarReina(int[] casellaOrigen, int[] casellaDesti, String peçaDesti, boolean peçaCami) {
+        boolean valid = false;
+        int desplaçamentVertical = Math.abs(casellaDesti[0] - casellaOrigen[0]);
+        int desplaçamentHoritzontal = Math.abs(casellaDesti[1] - casellaOrigen[1]);
+
+        //reina es mou com alfil 
+        if ((desplaçamentHoritzontal == desplaçamentVertical && desplaçamentHoritzontal > 0)) {
+            if (!peçaCami && !peçaDesti.equals("aliada")) {
+                valid = true;
+            }
+        }
+
+        //reina es mou com torre
+        if ((desplaçamentVertical == 0 && desplaçamentHoritzontal != 0) || 
+            (desplaçamentVertical != 0 && desplaçamentHoritzontal == 0)) {
+            if (!peçaCami && !peçaDesti.equals("aliada")) {
+                valid = true;
+            }
+        }
+        return valid;
+    }
+
+    public boolean validarRei(int[] casellaOrigen, int[] casellaDesti, String peçaDesti, boolean peçaCami) {
+        boolean valid = false;
+        int desplaçamentVertical = Math.abs(casellaDesti[0] - casellaOrigen[0]);
+        int desplaçamentHoritzontal = Math.abs(casellaDesti[1] - casellaOrigen[1]);
+
+        if ((desplaçamentVertical <= 1 && desplaçamentHoritzontal <= 1) && 
+            (desplaçamentVertical != 0 || desplaçamentHoritzontal != 0)) {
+            if (!peçaCami && !peçaDesti.equals("aliada")) {
+                valid = true;
+            }
+        }
+
+        return valid;
+    }
+
+    public boolean validarCavall(int[] casellaOrigen, int[] casellaDesti, String peçaDesti) {
+        boolean valid = false;
+        int desplaçamentVertical = Math.abs(casellaDesti[0] - casellaOrigen[0]);
+        int desplaçamentHoritzontal = Math.abs(casellaDesti[1] - casellaOrigen[1]);
+
+        if ((desplaçamentVertical == 2 && desplaçamentHoritzontal == 1) || 
+            (desplaçamentVertical == 1 && desplaçamentHoritzontal == 2)) {
+            if(!peçaDesti.equals("aliada")) {
+                valid = true;
+            }
         }
 
         return valid;
