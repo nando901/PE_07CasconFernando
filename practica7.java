@@ -8,7 +8,9 @@ public class practica7 {
         p.principal();    
     }
         
-    //me falta algo pero no me acuerdo
+    //pensar en que pasa si mete una casilla que no esta en el rango (fuera del tablero)
+    //revisar comentarios, quitar los que no sirvan para nada y agregar nuevos
+    //falta conectar validarMoviment con torn
     //banquillo de muertes
     //si el peon llega al final, cambia a cualquier ficha a eleccion
     //actualizar y mostrar tablero
@@ -31,7 +33,7 @@ public class practica7 {
 
         boolean partida = true;
         boolean abandonar = false;
-        boolean blanques = true; //blanques -> nouen blanques, !blanques -> mouen negres
+        boolean blanques = true; //blanques -> mouen blanques, !blanques -> mouen negres
 
         while(partida && !abandonar) {
             if (blanques) {
@@ -49,26 +51,24 @@ public class practica7 {
     }
 
 
-    //inicialitza totes les caselles del taulell, posant "." 
     public char[][] inicialitzarTaulell() {
         int files = 9;
         int cols = 9;
         char[][] taulell = new char[files][cols];
-
         taulell[0][0] = ' ';
 
-        //generar fila de letras
+        //generar fila de lletres
         char lletra = 'a';
         for(int c = 1; c < taulell.length; c++) {
             taulell[0][c] = lletra++;      
         }
 
-        //generar columna de letras
+        //generar columna de lletres
         for(int f = 1; f < taulell.length; f++) {  
             taulell[f][0] = (char) ('0' + f);  
         }
 
-        //generar puntos por el tablero
+        //generar punts en la resta del taulell
         for(int f = 1; f < taulell.length; f++) {
             for (int c = 1; c < taulell[f].length; c++) {
                 taulell[f][c] = '.';
@@ -77,9 +77,8 @@ public class practica7 {
         return taulell;
     }
 
-        //genera las peces blanques i negres
     public void generarPeces(char[][] taulell) {
-        //generar peones
+        //generar peons
         for(int i = 1; i < taulell.length; i++) {
             taulell[7][i] = 'P';
             taulell[2][i] = 'p';
@@ -95,7 +94,7 @@ public class practica7 {
             taulell[filaPeçesNegres][torres[i]] = 't';    
         }
 
-        //caballs
+        //cavalls
         int[] cavalls = {2, 7};
         for (int i = 0; i < cavalls.length; i++) {
             taulell[filaPeçesBlanques][cavalls[i]] = 'C';
@@ -168,102 +167,114 @@ public class practica7 {
 
     //posiblemente en el futuro devuelva el movimiento ya verificado
     public void torn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
-        boolean valid =  false;
-
+        Boolean peçaCami = false;
+        String peçaDesti = "";
         System.out.println("\nTorn de les " + torn + ": ");
 
+        int[] casellaOrigen = validarCasellaOrigen(torn, taulell, blanques, peçesBlanques, peçesNegres);
+        int[] casellaDesti = validarCasellaDesti();
+
+        peçaCami = peçaCami(casellaDesti, casellaOrigen, taulell);
+        peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanques, casellaDesti, taulell);
+        
+        validarMoviment(taulell, blanques, casellaOrigen, casellaDesti, peçaCami, peçaDesti);
+    }
+
+    public int[] validarCasellaOrigen (String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
         String casellaOrigen = "";
+        boolean valid = false;
+        int[] casellaOrigenArray = new int[2];
 
         do {
             casellaOrigen = demanarCasella("origen");
-
             if (blanques) {
                 valid = comprobarCasellaOrigen(casellaOrigen, taulell, peçesBlanques);
             } else {
                 valid = comprobarCasellaOrigen(casellaOrigen, taulell, peçesNegres);
             }
-
             if (!valid) {
                 System.out.println("[Error] La casella d'origen no conté ninguna peça " + torn + ". Torna-ho a intentar.");
             }
         } while (!valid);
 
+        casellaOrigenArray = conversioLletres(casellaOrigen);
 
-        //para que torn no sea tan grande, crear un metodo a parte que se llame validarMoviment con todo esto
+        return casellaOrigenArray;
     }
 
-    public void validarMoviment(char[][] taulell, boolean blanquesBool, char[] peçesBlanques, char[] peçesNegres, String casellaOrigen) {
+    public int[] validarCasellaDesti() {
+        String casellaFinal = demanarCasella("final");
+        int[] casellaDestiArray = conversioLletres(casellaFinal);
+
+        return casellaDestiArray;
+    }
+
+
+    //hago un return del movimiento validado?
+    public void validarMoviment(char[][] taulell, boolean blanquesBool, int[] casellaOrigen, int[] casellaDesti, boolean peçaCami, String peçaDesti) {
         boolean validacioPeça = false;
 
         do {
-            validacioPeça = false;
-            String casellaFinal = demanarCasella("final");
-            
-            int[] casellaOrigenArray = conversioLletres(casellaOrigen);
-            int[] casellaDestiArray = conversioLletres(casellaFinal);
-
-            String peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanquesBool, casellaDestiArray, taulell);
-            Boolean peçaCami = peçaCami(casellaDestiArray, casellaOrigenArray, taulell);
-
-            switch (taulell[casellaOrigenArray[0]][casellaOrigenArray[1]]) {
+            switch (taulell[casellaOrigen[0]][casellaOrigen[1]]) {
                 case 'P':
                 case 'p':
-                    validacioPeça = validarPeo(casellaOrigenArray, casellaDestiArray, blanquesBool, peçaDesti, peçaCami);
+                    validacioPeça = validarPeo(casellaOrigen, casellaDesti, blanquesBool, peçaDesti, peçaCami);
 
                     if (!validacioPeça) {
-                        missatjeError(validacioPeça, peçaDesti, "peó");
+                        missatgeError(validacioPeça, peçaDesti, "peó");
                     }
                     break;
 
                 case 't':
                 case 'T':
-                    validacioPeça = validarTorre(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+                    validacioPeça = validarTorre(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
                     if (!validacioPeça) {
-                        missatjeError(peçaCami, peçaDesti, "torre");
+                        missatgeError(peçaCami, peçaDesti, "torre");
                     }
                     break;
 
                 case 'a':
                 case 'A':
-                    validacioPeça = validarAlfil(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+                    validacioPeça = validarAlfil(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
                     if (!validacioPeça) {
-                        missatjeError(peçaCami, peçaDesti, "alfil");
+                        missatgeError(peçaCami, peçaDesti, "alfil");
                     }
                     break;
 
                 case 'c':
                 case 'C':
-                    validacioPeça = validarCavall(casellaOrigenArray, casellaDestiArray, peçaDesti);
+                    validacioPeça = validarCavall(casellaOrigen, casellaDesti, peçaDesti);
 
                     if (!validacioPeça) {
-                        missatjeError(peçaCami, peçaDesti, "cavall");
+                        missatgeError(peçaCami, peçaDesti, "cavall");
                     }
                     break;
 
                 case 'q':
                 case 'Q':
-                    validacioPeça = validarReina(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+                    validacioPeça = validarReina(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
                     if (!validacioPeça) {
-                        missatjeError(peçaCami, peçaDesti, "reina");
+                        missatgeError(peçaCami, peçaDesti, "reina");
                     }
                     break;
 
                 case 'k':
                 case 'K':
-                    validacioPeça = validarRei(casellaOrigenArray, casellaDestiArray, peçaDesti, peçaCami);
+                    validacioPeça = validarRei(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
                     if (!validacioPeça) {
-                        missatjeError(peçaCami, peçaDesti, "rei");
+                        missatgeError(peçaCami, peçaDesti, "rei");
                     }
                     break;
             }
         } while (!validacioPeça);
     }
 
-    public void missatjeError(boolean peçaCami, String peçaDesti, String tipusPeça) {
+    //mostra els missatges dels possibles errors de moviment
+    public void missatgeError(boolean peçaCami, String peçaDesti, String tipusPeça) {
         if (peçaCami && !tipusPeça.equals("cavall")) {
             System.out.println("[Error] No pots saltar per sobre d'altres peces. Hi ha una peça bloquejant el camí");
 
@@ -302,7 +313,7 @@ public class practica7 {
         return casella;
     }
 
-    //converteix el format donat per cada casella "c7", en un format nunmeric "3,7"
+    //converteix el format donat per cada casella ex:"c7", en un format nunmeric ex:"3,7"
     public int[] conversioLletres(String casella) {
         int[] casellaValidada = new int[2];
         
@@ -316,7 +327,6 @@ public class practica7 {
         return casellaValidada;
     }
 
-    //acabar de decidir si boolean u otra cosa
     public boolean comprobarCasellaOrigen (String casellaOrigen, char[][] taulell, char[] peçes) {
         boolean valid = false;
         int[] casella = conversioLletres(casellaOrigen);
@@ -368,7 +378,7 @@ public class practica7 {
         int direccioCol = 0;
         int desplaçamentPeça = 0;
 
-        //seqüènica de condicionals que comroba si el moviment es positiu o negatiu
+        //seqüènica de condicionals que comrova si el moviment es positiu o negatiu
         if (desplaçamentFila > 0) {
             direccioFila = 1;
         }
@@ -383,7 +393,7 @@ public class practica7 {
             direccioCol = -1;
         }
 
-        //calcul del desplaçament
+        //càlcul del desplaçament
         if (Math.abs(desplaçamentFila) > Math.abs(desplaçamentCol)) {
             desplaçamentPeça = Math.abs(desplaçamentFila);
         } else {
@@ -402,7 +412,6 @@ public class practica7 {
         return hiHaPeca;
     }
 
-    //valida moviment peo 
     public boolean validarPeo(int[] casellaOrigen, int[] casellaDesti, boolean blanques, String peçaDesti, boolean peçaCami) {
         boolean valid = false;
         int desplaçamentVertical = casellaDesti[0] - casellaOrigen[0];
@@ -410,12 +419,12 @@ public class practica7 {
         int direccio = 0;
 
         if (blanques) {
-            direccio = -1; // blanques puigen
+            direccio = -1; // blanques pugen
         } else {
             direccio = 1;  // negres baixen
         }
 
-        // blancas: primer movimiento de 2 casillas
+        //durant el primer moviment dels peons es poden moure 2 caselles en lloc d'1
         if ((blanques && casellaOrigen[0] == 7 && desplaçamentVertical == -2 && desplaçamentHoritzontal == 0) || 
             (!blanques && casellaOrigen[0] == 2 && desplaçamentVertical == 2 && desplaçamentHoritzontal == 0)) {
             if (peçaDesti.equals("neutre") && !peçaCami) {
@@ -429,6 +438,7 @@ public class practica7 {
             }
         }
 
+        //moviment diagonal per matar a alguna peça contraria
         if (desplaçamentVertical == direccio && Math.abs(desplaçamentHoritzontal) == 1 && peçaDesti.equals("enemiga")) {
             valid = true;
         }
@@ -470,14 +480,14 @@ public class practica7 {
         int desplaçamentVertical = Math.abs(casellaDesti[0] - casellaOrigen[0]);
         int desplaçamentHoritzontal = Math.abs(casellaDesti[1] - casellaOrigen[1]);
 
-        //reina es mou com alfil 
+        //moviment diagonal
         if ((desplaçamentHoritzontal == desplaçamentVertical && desplaçamentHoritzontal > 0)) {
             if (!peçaCami && !peçaDesti.equals("aliada")) {
                 valid = true;
             }
         }
 
-        //reina es mou com torre
+        //moviment vertical i horitzontal
         if ((desplaçamentVertical == 0 && desplaçamentHoritzontal != 0) || 
             (desplaçamentVertical != 0 && desplaçamentHoritzontal == 0)) {
             if (!peçaCami && !peçaDesti.equals("aliada")) {
