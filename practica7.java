@@ -37,11 +37,11 @@ public class practica7 {
 
         while(partida && !abandonar) {
             if (blanques) {
-                torn("blanques", taulell, blanques, peçesBlanques, peçesNegres);
+                torn("blanques", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres);
                 //guardar en arraylist el movimiento
 
             } else {
-                torn("negres", taulell, blanques, peçesBlanques, peçesNegres);
+                torn("negres", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres);
                 //guardar en arraylist el movimiento
             }
 
@@ -49,7 +49,6 @@ public class practica7 {
             blanques = !blanques; //cambia de torn
         }
     }
-
 
     public char[][] inicialitzarTaulell() {
         int files = 9;
@@ -166,18 +165,24 @@ public class practica7 {
     }
 
     //posiblemente en el futuro devuelva el movimiento ya verificado
-    public void torn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
-        Boolean peçaCami = false;
-        String peçaDesti = "";
+    public void torn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres) {
+        String casellaOrigenString = "";
+        String casellaDestiString = "";
+        
         System.out.println("\nTorn de les " + torn + ": ");
 
         int[] casellaOrigen = validarCasellaOrigen(torn, taulell, blanques, peçesBlanques, peçesNegres);
-        int[] casellaDesti = validarCasellaDesti();
+        int[] casellaDesti = validarMoviment(taulell, blanques, peçesBlanques, peçesNegres, casellaOrigen);
 
-        peçaCami = peçaCami(casellaDesti, casellaOrigen, taulell);
-        peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanques, casellaDesti, taulell);
-        
-        validarMoviment(taulell, blanques, casellaOrigen, casellaDesti, peçaCami, peçaDesti);
+        casellaOrigenString = convertirCasellaAText(casellaOrigen);
+        casellaDestiString = convertirCasellaAText(casellaDesti);
+
+        if (blanques) {
+            movimentsBlanques.add(casellaOrigenString + ", " + casellaDestiString);
+
+        } else {
+            movimentsNegres.add(casellaOrigenString + ", " + casellaDestiString);
+        }
     }
 
     public int[] validarCasellaOrigen (String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
@@ -209,68 +214,82 @@ public class practica7 {
         return casellaDestiArray;
     }
 
+    public int[] validarMoviment(char[][] taulell, boolean blanquesBool, char[] peçesBlanques, char[] peçesNegres, int[] casellaOrigen) {
+        boolean validacioPeça = false;
+        boolean peçaCami = false;
+        String peçaDesti = "";
+        int[] casellaDesti = new int[2];
+        char tipusPeça = taulell[casellaOrigen[0]][casellaOrigen[1]];
+        
+        do {
+            casellaDesti = validarCasellaDesti();
 
-    //hago un return del movimiento validado?
-    public void validarMoviment(char[][] taulell, boolean blanquesBool, int[] casellaOrigen, int[] casellaDesti, boolean peçaCami, String peçaDesti) {
+            if (tipusPeça != 'c' && tipusPeça != 'C') {
+                peçaCami = peçaCami(casellaDesti, casellaOrigen, taulell);
+            }
+
+            peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanquesBool, casellaDesti, taulell);
+            validacioPeça = revisarMoviment(tipusPeça, blanquesBool, casellaOrigen, casellaDesti, peçaDesti, peçaCami);
+            
+        } while (!validacioPeça);
+
+        return casellaDesti;
+    }
+
+    //revisa el tipus de moviment que fa cada peça
+    public boolean revisarMoviment(char tipusPeça, boolean blanquesBool, int[] casellaOrigen, int[] casellaDesti, String peçaDesti, boolean peçaCami) {
         boolean validacioPeça = false;
 
-        do {
-            switch (taulell[casellaOrigen[0]][casellaOrigen[1]]) {
-                case 'P':
-                case 'p':
-                    validacioPeça = validarPeo(casellaOrigen, casellaDesti, blanquesBool, peçaDesti, peçaCami);
+        switch (Character.toLowerCase(tipusPeça)) {
+            case 'p':
+                validacioPeça = validarPeo(casellaOrigen, casellaDesti, blanquesBool, peçaDesti, peçaCami);
 
-                    if (!validacioPeça) {
-                        missatgeError(validacioPeça, peçaDesti, "peó");
-                    }
-                    break;
+                if (!validacioPeça) {
+                    missatgeError(peçaCami, peçaDesti, "peó");
+                }
+                break;
 
-                case 't':
-                case 'T':
-                    validacioPeça = validarTorre(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
+            case 't':
+                validacioPeça = validarTorre(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
-                    if (!validacioPeça) {
-                        missatgeError(peçaCami, peçaDesti, "torre");
-                    }
-                    break;
+                if (!validacioPeça) {
+                    missatgeError(peçaCami, peçaDesti, "torre");
+                }
+                break;
 
-                case 'a':
-                case 'A':
-                    validacioPeça = validarAlfil(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
+            case 'a':
+                validacioPeça = validarAlfil(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
-                    if (!validacioPeça) {
-                        missatgeError(peçaCami, peçaDesti, "alfil");
-                    }
-                    break;
+                if (!validacioPeça) {
+                    missatgeError(peçaCami, peçaDesti, "alfil");
+                }
+                break;
 
-                case 'c':
-                case 'C':
-                    validacioPeça = validarCavall(casellaOrigen, casellaDesti, peçaDesti);
+            case 'c':
+                validacioPeça = validarCavall(casellaOrigen, casellaDesti, peçaDesti);
 
-                    if (!validacioPeça) {
-                        missatgeError(peçaCami, peçaDesti, "cavall");
-                    }
-                    break;
+                if (!validacioPeça) {
+                    missatgeError(peçaCami, peçaDesti, "cavall");
+                }
+                break;
 
-                case 'q':
-                case 'Q':
-                    validacioPeça = validarReina(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
+            case 'q':
+                validacioPeça = validarReina(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
-                    if (!validacioPeça) {
-                        missatgeError(peçaCami, peçaDesti, "reina");
-                    }
-                    break;
+                if (!validacioPeça) {
+                    missatgeError(peçaCami, peçaDesti, "reina");
+                }
+                break;
 
-                case 'k':
-                case 'K':
-                    validacioPeça = validarRei(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
+            case 'k':
+                validacioPeça = validarRei(casellaOrigen, casellaDesti, peçaDesti, peçaCami);
 
-                    if (!validacioPeça) {
-                        missatgeError(peçaCami, peçaDesti, "rei");
-                    }
-                    break;
-            }
-        } while (!validacioPeça);
+                if (!validacioPeça) {
+                    missatgeError(peçaCami, peçaDesti, "rei");
+                }
+                break;
+        }
+        return validacioPeça;
     }
 
     //mostra els missatges dels possibles errors de moviment
@@ -326,6 +345,19 @@ public class practica7 {
 
         return casellaValidada;
     }
+
+    //converteix la casella de format int[] en el mateix format de l'entrada per poder portar un registre dels moviments posteriorment
+    public String convertirCasellaAText(int[] casella) {
+        String casellaText = "";
+
+        char lletra = (char) ('a' + casella[1] - 1);
+        int numero = casella[0];
+
+        casellaText = "" + lletra + numero;
+
+        return casellaText;
+    }
+
 
     public boolean comprobarCasellaOrigen (String casellaOrigen, char[][] taulell, char[] peçes) {
         boolean valid = false;
