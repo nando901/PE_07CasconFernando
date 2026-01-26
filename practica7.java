@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Scanner;
-//import java.util.InputMismatchException;
 public class practica7 {
     Scanner sc = new Scanner(System.in);
     public static void main(String[] args) {
@@ -8,18 +7,14 @@ public class practica7 {
         p.principal();    
     }
         
-    //pensar en que pasa si mete una casilla que no esta en el rango (fuera del tablero)
     //revisar comentarios, quitar los que no sirvan para nada y agregar nuevos
-    //falta conectar validarMoviment con torn
     //banquillo de muertes
     //si el peon llega al final, cambia a cualquier ficha a eleccion
-    //actualizar y mostrar tablero
-    //registrar movimiento en un arraylist
     //si haces ese movimiento, tu rey queda en jaque? -> como puedo hacer esto?
     //enroque
     //jaque
     //jaque mate
-    //hay que implementar que no se puede matar al rei
+    //hay que implementar que no se puede matar al rey
     //repetir
 
     public void principal() {
@@ -30,6 +25,7 @@ public class practica7 {
 
         char[][] taulell = generarTaulell();
         String[] jugadors = mostrarMissatgeInici();
+        imprimirTaulell(taulell);
 
         boolean partida = true;
         boolean abandonar = false;
@@ -37,15 +33,14 @@ public class practica7 {
 
         while(partida && !abandonar) {
             if (blanques) {
-                torn("blanques", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres);
+                torn("blanques", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
                 //guardar en arraylist el movimiento
 
             } else {
-                torn("negres", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres);
+                torn("negres", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
                 //guardar en arraylist el movimiento
             }
 
-            imprimirTaulell(taulell);
             blanques = !blanques; //cambia de torn
         }
     }
@@ -121,12 +116,16 @@ public class practica7 {
     }
 
     public void imprimirTaulell(char[][] taulell) {
+        System.out.println();
+
         for(int f = 0; f < taulell.length; f++) {
             for (int c = 0; c < taulell[f].length; c++) {
                 System.out.print(taulell[f][c] + " ");
             }
             System.out.println("");
         }
+
+        System.out.println();
     }
 
     public String[] mostrarMissatgeInici() {
@@ -165,24 +164,32 @@ public class practica7 {
     }
 
     //posiblemente en el futuro devuelva el movimiento ya verificado
-    public void torn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres) {
+    public void torn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres, String[] jugadorsArray) {
         String casellaOrigenString = "";
         String casellaDestiString = "";
+        String jugadors = "";
         
-        System.out.println("\nTorn de les " + torn + ": ");
+        System.out.println("Torn de les " + torn + ": ");
 
         int[] casellaOrigen = validarCasellaOrigen(torn, taulell, blanques, peçesBlanques, peçesNegres);
         int[] casellaDesti = validarMoviment(taulell, blanques, peçesBlanques, peçesNegres, casellaOrigen);
+
+        actualitzarTaulell(taulell, casellaOrigen, casellaDesti);
 
         casellaOrigenString = convertirCasellaAText(casellaOrigen);
         casellaDestiString = convertirCasellaAText(casellaDesti);
 
         if (blanques) {
             movimentsBlanques.add(casellaOrigenString + ", " + casellaDestiString);
+            jugadors = jugadorsArray[0];
 
         } else {
             movimentsNegres.add(casellaOrigenString + ", " + casellaDestiString);
+            jugadors = jugadorsArray[1];
         }
+
+        System.out.println("Moviment " + jugadors + ": " + casellaOrigenString + ", " + casellaDestiString);
+        imprimirTaulell(taulell);
     }
 
     public int[] validarCasellaOrigen (String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
@@ -557,5 +564,10 @@ public class practica7 {
         }
 
         return valid;
+    }
+
+    public void actualitzarTaulell(char[][] taulell, int[] casellaOrigen, int[] casellaDesti) {
+        taulell[casellaDesti[0]][casellaDesti[1]] = taulell[casellaOrigen[0]][casellaOrigen[1]];
+        taulell[casellaOrigen[0]][casellaOrigen[1]] = '.';
     }
 }
