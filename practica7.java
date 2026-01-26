@@ -18,6 +18,9 @@ public class practica7 {
     //repetir
 
     public void principal() {
+        boolean partida = true;
+        boolean abandonar = false;
+        boolean blanques = true;    //blanques -> mouen blanques, !blanques -> mouen negres
         char[] peçesBlanques = {'Q', 'K', 'T', 'A', 'C', 'P'};
         char[] peçesNegres = {'q', 'k', 't', 'a', 'c', 'p'};
         ArrayList<String> movimentsBlanques = new ArrayList<>();
@@ -27,18 +30,12 @@ public class practica7 {
         String[] jugadors = mostrarMissatgeInici();
         imprimirTaulell(taulell);
 
-        boolean partida = true;
-        boolean abandonar = false;
-        boolean blanques = true; //blanques -> mouen blanques, !blanques -> mouen negres
-
         while(partida && !abandonar) {
             if (blanques) {
-                torn("blanques", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
-                //guardar en arraylist el movimiento
+                gestionarTorn("blanques", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
 
             } else {
-                torn("negres", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
-                //guardar en arraylist el movimiento
+                gestionarTorn("negres", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
             }
 
             blanques = !blanques; //cambia de torn
@@ -72,14 +69,14 @@ public class practica7 {
     }
 
     public void generarPeces(char[][] taulell) {
+        int filaPeçesBlanques = 8;
+        int filaPeçesNegres = 1;
+
         //generar peons
         for(int i = 1; i < taulell.length; i++) {
             taulell[7][i] = 'P';
             taulell[2][i] = 'p';
         }
-
-        int filaPeçesBlanques = 8;
-        int filaPeçesNegres = 1;
 
         // Torres
         int[] torres = {1, 8};
@@ -164,35 +161,16 @@ public class practica7 {
     }
 
     //posiblemente en el futuro devuelva el movimiento ya verificado
-    public void torn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres, String[] jugadorsArray) {
-        String casellaOrigenString = "";
-        String casellaDestiString = "";
-        String jugadors = "";
-        
+    public void gestionarTorn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres, String[] jugadorsArray) {
         System.out.println("Torn de les " + torn + ": ");
 
         int[] casellaOrigen = validarCasellaOrigen(torn, taulell, blanques, peçesBlanques, peçesNegres);
         int[] casellaDesti = validarMoviment(taulell, blanques, peçesBlanques, peçesNegres, casellaOrigen);
 
-        actualitzarTaulell(taulell, casellaOrigen, casellaDesti);
-
-        casellaOrigenString = convertirCasellaAText(casellaOrigen);
-        casellaDestiString = convertirCasellaAText(casellaDesti);
-
-        if (blanques) {
-            movimentsBlanques.add(casellaOrigenString + ", " + casellaDestiString);
-            jugadors = jugadorsArray[0];
-
-        } else {
-            movimentsNegres.add(casellaOrigenString + ", " + casellaDestiString);
-            jugadors = jugadorsArray[1];
-        }
-
-        System.out.println("Moviment " + jugadors + ": " + casellaOrigenString + ", " + casellaDestiString);
-        imprimirTaulell(taulell);
+        executarMoviment(taulell, casellaOrigen, casellaDesti, blanques, movimentsBlanques, movimentsNegres, jugadorsArray);
     }
 
-    public int[] validarCasellaOrigen (String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
+    public int[] validarCasellaOrigen(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
         String casellaOrigen = "";
         boolean valid = false;
         int[] casellaOrigenArray = new int[2];
@@ -231,7 +209,7 @@ public class practica7 {
         do {
             casellaDesti = validarCasellaDesti();
 
-            if (tipusPeça != 'c' && tipusPeça != 'C') {
+            if (Character.toLowerCase(tipusPeça) != 'c') {
                 peçaCami = peçaCami(casellaDesti, casellaOrigen, taulell);
             }
 
@@ -312,6 +290,34 @@ public class practica7 {
         }
     }
 
+    public void executarMoviment(char[][] taulell, int[] casellaOrigen, int[] casellaDesti, boolean blanques, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres, String[] jugadorsArray) {
+        String casellaOrigenString = "";
+        String casellaDestiString = "";
+        String jugadors = "";
+
+        actualitzarTaulell(taulell, casellaOrigen, casellaDesti);
+
+        casellaOrigenString = convertirCasellaAText(casellaOrigen);
+        casellaDestiString = convertirCasellaAText(casellaDesti);
+
+        if (blanques) {
+            movimentsBlanques.add(casellaOrigenString + ", " + casellaDestiString);
+            jugadors = jugadorsArray[0];
+
+        } else {
+            movimentsNegres.add(casellaOrigenString + ", " + casellaDestiString);
+            jugadors = jugadorsArray[1];
+        }
+
+        System.out.println("Moviment " + jugadors + ": " + casellaOrigenString + ", " + casellaDestiString);
+        imprimirTaulell(taulell);
+    }
+
+    public void actualitzarTaulell(char[][] taulell, int[] casellaOrigen, int[] casellaDesti) {
+        taulell[casellaDesti[0]][casellaDesti[1]] = taulell[casellaOrigen[0]][casellaOrigen[1]];
+        taulell[casellaOrigen[0]][casellaOrigen[1]] = '.';
+    }
+
     public String demanarCasella(String tipusCasella) {
         String casella = "";
         boolean valid = true;
@@ -364,7 +370,6 @@ public class practica7 {
 
         return casellaText;
     }
-
 
     public boolean comprobarCasellaOrigen (String casellaOrigen, char[][] taulell, char[] peçes) {
         boolean valid = false;
@@ -564,10 +569,5 @@ public class practica7 {
         }
 
         return valid;
-    }
-
-    public void actualitzarTaulell(char[][] taulell, int[] casellaOrigen, int[] casellaDesti) {
-        taulell[casellaDesti[0]][casellaDesti[1]] = taulell[casellaOrigen[0]][casellaOrigen[1]];
-        taulell[casellaOrigen[0]][casellaOrigen[1]] = '.';
     }
 }
