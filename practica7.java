@@ -6,16 +6,6 @@ public class practica7 {
         practica7 p = new practica7();
         p.principal();    
     }
-        
-    //revisar comentarios, quitar los que no sirvan para nada y agregar nuevos
-    //banquillo de muertes
-    //si el peon llega al final, cambia a cualquier ficha a eleccion
-    //si haces ese movimiento, tu rey queda en jaque? -> como puedo hacer esto?
-    //enroque
-    //jaque
-    //jaque mate
-    //hay que implementar que no se puede matar al rey
-    //repetir
 
     public void principal() {
         boolean partida = true;
@@ -54,7 +44,7 @@ public class practica7 {
             taulell[0][c] = lletra++;      
         }
 
-        //generar columna de lletres
+        //generar columna de numeros
         for(int f = 1; f < taulell.length; f++) {  
             taulell[f][0] = (char) ('0' + f);  
         }
@@ -100,10 +90,10 @@ public class practica7 {
         }
 
         // Rei i reina
-        taulell[filaPeçesBlanques][4] = 'Q';
-        taulell[filaPeçesBlanques][5] = 'K';
-        taulell[filaPeçesNegres][4] = 'k';
-        taulell[filaPeçesNegres][5] = 'q';
+        taulell[filaPeçesBlanques][5] = 'Q';
+        taulell[filaPeçesBlanques][4] = 'K';
+        taulell[filaPeçesNegres][5] = 'k';
+        taulell[filaPeçesNegres][4] = 'q';
     }
 
     public char[][] generarTaulell() {
@@ -193,7 +183,7 @@ public class practica7 {
     }
 
     public int[] validarCasellaDesti() {
-        String casellaFinal = demanarCasella("final");
+        String casellaFinal = demanarCasella("destí");
         int[] casellaDestiArray = conversioLletres(casellaFinal);
 
         return casellaDestiArray;
@@ -209,7 +199,7 @@ public class practica7 {
         do {
             casellaDesti = validarCasellaDesti();
 
-            if (Character.toLowerCase(tipusPeça) != 'c') {
+            if (Character.toLowerCase(tipusPeça) != 'c' && Character.toLowerCase(tipusPeça) != 'k') {
                 peçaCami = peçaCami(casellaDesti, casellaOrigen, taulell);
             }
 
@@ -569,5 +559,34 @@ public class practica7 {
         }
 
         return valid;
+    }
+
+    public int[] buscarRei(char[][] taulell, boolean blanques) {
+        char bandoRei = ' ';
+        boolean casellaReiBool = false;
+        int[] casellaRei = new int[2];
+
+        if (blanques) {
+            bandoRei = 'K';
+
+        } else {
+            bandoRei = 'k';
+        }
+
+        for (int files = 1; files < taulell.length && !casellaReiBool; files++) {
+            for (int cols = 1; cols < taulell[files].length && !casellaReiBool; cols ++) {
+                if (taulell[files][cols] == bandoRei) {
+                    casellaReiBool = true;
+                    casellaRei[0] = files;
+                    casellaRei[1] = cols;
+                }
+            }
+        }
+
+        return casellaRei;
+    }
+
+    public void reiEnEscac() {
+        
     }
 }
