@@ -7,29 +7,48 @@ public class practica7 {
         p.principal();    
     }
 
+    //revisar comentarios, quitar los que no sirvan para nada y agregar nuevos
+    //banquillo de muertes
+    //si el peon llega al final, cambia a cualquier ficha a eleccion
+    //si haces ese movimiento, tu rey queda en jaque? -> como puedo hacer esto?
+    //enroque
+    //jaque
+    //jaque mate
+    //hay que implementar que no se puede matar al rey
+    //repetir
+
     public void principal() {
         boolean partida = true;
         boolean abandonar = false;
+        boolean novaPartida = true;
         boolean blanques = true;    //blanques -> mouen blanques, !blanques -> mouen negres
-        char[] peçesBlanques = {'Q', 'K', 'T', 'A', 'C', 'P'};
-        char[] peçesNegres = {'q', 'k', 't', 'a', 'c', 'p'};
+        char[][] taulell;
         ArrayList<String> movimentsBlanques = new ArrayList<>();
         ArrayList<String> movimentsNegres = new ArrayList<>();
+        ArrayList<Character> balnquesCapturades = new ArrayList<>();
+        ArrayList<Character> negresCapturades = new ArrayList<>();
 
-        char[][] taulell = generarTaulell();
         String[] jugadors = mostrarMissatgeInici();
-        imprimirTaulell(taulell);
 
-        while(partida && !abandonar) {
-            if (blanques) {
-                gestionarTorn("blanques", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
+        while (novaPartida) {
+            taulell = generarTaulell();
+            imprimirTaulell(taulell);
 
-            } else {
-                gestionarTorn("negres", taulell, blanques, peçesBlanques, peçesNegres, movimentsBlanques, movimentsNegres, jugadors);
+            while(partida && !abandonar) {
+                if (blanques) {
+                    abandonar = gestionarTorn("blanques", taulell, blanques, movimentsBlanques, movimentsNegres, jugadors);
+
+                } else {
+                    abandonar = gestionarTorn("negres", taulell, blanques, movimentsBlanques, movimentsNegres, jugadors);
+                }
+
+                blanques = !blanques; //cambia de torn
             }
 
-            blanques = !blanques; //cambia de torn
+            novaPartida = finalPartida(jugadors);           
         }
+
+        System.out.println("Gracies per jugar!");
     }
 
     public char[][] inicialitzarTaulell() {
@@ -150,36 +169,53 @@ public class practica7 {
         return nom;
     }
 
-    //posiblemente en el futuro devuelva el movimiento ya verificado
-    public void gestionarTorn(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres, String[] jugadorsArray) {
+    public boolean gestionarTorn(String torn, char[][] taulell, boolean blanques, ArrayList<String> movimentsBlanques, ArrayList<String> movimentsNegres, String[] jugadorsArray) {
+        boolean abandonar = false;
+        char[] peçesBlanques = {'Q', 'K', 'T', 'A', 'C', 'P'};
+        char[] peçesNegres = {'q', 'k', 't', 'a', 'c', 'p'};
+        
         System.out.println("Torn de les " + torn + ": ");
 
-        int[] casellaOrigen = validarCasellaOrigen(torn, taulell, blanques, peçesBlanques, peçesNegres);
-        int[] casellaDesti = validarMoviment(taulell, blanques, peçesBlanques, peçesNegres, casellaOrigen);
+        String casellaOrigenString = validarCasellaOrigen(torn, taulell, blanques, peçesBlanques, peçesNegres);
+        
+        // Comprovar si el jugador ha abandonat la partida
+        if (!casellaOrigenString.equalsIgnoreCase("abandonar")) {
+            int[] casellaOrigen = conversioLletres(casellaOrigenString);
+            int[] casellaDesti = validarMoviment(taulell, blanques, peçesBlanques, peçesNegres, casellaOrigen);
 
-        executarMoviment(taulell, casellaOrigen, casellaDesti, blanques, movimentsBlanques, movimentsNegres, jugadorsArray);
+            executarMoviment(taulell, casellaOrigen, casellaDesti, blanques, movimentsBlanques, movimentsNegres, jugadorsArray);
+
+        } else {
+            abandonar = true;
+        }
+        
+        return abandonar;
     }
 
-    public int[] validarCasellaOrigen(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
+    public String validarCasellaOrigen(String torn, char[][] taulell, boolean blanques, char[] peçesBlanques, char[] peçesNegres) {
         String casellaOrigen = "";
         boolean valid = false;
-        int[] casellaOrigenArray = new int[2];
 
         do {
             casellaOrigen = demanarCasella("origen");
-            if (blanques) {
-                valid = comprobarCasellaOrigen(casellaOrigen, taulell, peçesBlanques);
+
+            if (casellaOrigen.equalsIgnoreCase("abandonar")) {
+                valid = true;
+
             } else {
-                valid = comprobarCasellaOrigen(casellaOrigen, taulell, peçesNegres);
+                if (blanques) {
+                    valid = comprobarCasellaOrigen(casellaOrigen, taulell, peçesBlanques);
+                } else {
+                    valid = comprobarCasellaOrigen(casellaOrigen, taulell, peçesNegres);
+                }
+                if (!valid) {
+                    System.out.println("[Error] La casella d'origen no conté ninguna peça " + torn + ". Torna-ho a intentar.");
+                }
             }
-            if (!valid) {
-                System.out.println("[Error] La casella d'origen no conté ninguna peça " + torn + ". Torna-ho a intentar.");
-            }
+
         } while (!valid);
 
-        casellaOrigenArray = conversioLletres(casellaOrigen);
-
-        return casellaOrigenArray;
+        return casellaOrigen;
     }
 
     public int[] validarCasellaDesti() {
@@ -446,6 +482,16 @@ public class practica7 {
         return hiHaPeca;
     }
 
+    public void peçesCapturades(String peçaDesti, ArrayList<Character> banquetaMorts, char[][] taulell, int[] casellaDesti, String[] peçesBlanques, String[] peçesNegres, boolean blanquesBool) {
+        String peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanquesBool, casellaDesti, taulell);
+
+        if (peçaDesti.equals("enemiga")) {
+            banquetaMorts.add(taulell[casellaDesti[0]][casellaDesti[1]]);
+        }
+
+        //pensar en como hacer esto para implementarlo en la funcion
+    }
+
     public boolean validarPeo(int[] casellaOrigen, int[] casellaDesti, boolean blanques, String peçaDesti, boolean peçaCami) {
         boolean valid = false;
         int desplaçamentVertical = casellaDesti[0] - casellaOrigen[0];
@@ -588,5 +634,45 @@ public class practica7 {
 
     public void reiEnEscac() {
         
+    }
+
+    public boolean finalPartida(String[] jugadors) {
+        boolean novaPartidaBool = true;
+        String novaPartida = "";
+        String mateixosJugadors = "";
+
+        System.out.println("Partida acabada");
+        novaPartida = validacioString("Voleu seguir jugant?[si/no]: ");
+
+        if (novaPartida.equalsIgnoreCase("si")) {
+            mateixosJugadors = validacioString("Mateixos jugadors?[si/no]: ");
+
+            if (mateixosJugadors.equalsIgnoreCase("no")) {
+                String[] nousJugadors = mostrarMissatgeInici();
+                jugadors[0] = nousJugadors[0];
+                jugadors[1] = nousJugadors[1];
+            }
+
+        } else {
+            novaPartidaBool = false;
+        }    
+
+        return novaPartidaBool;    
+    }
+
+    public String validacioString(String misstage) {
+        String novaPartida = "";
+        
+        do {
+            System.out.print(misstage);
+            novaPartida = sc.nextLine();
+
+            if (!novaPartida.equalsIgnoreCase("si") && !novaPartida.equalsIgnoreCase("no")) {
+                System.out.println("[Error] Introdueix una resposta vàlida (si/no).");
+            }
+
+        } while (!novaPartida.equalsIgnoreCase("si") && !novaPartida.equalsIgnoreCase("no"));
+
+        return novaPartida;
     }
 }
