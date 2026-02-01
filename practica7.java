@@ -7,16 +7,6 @@ public class practica7 {
         p.principal();    
     }
 
-    //revisar comentarios, quitar los que no sirvan para nada y agregar nuevos
-    //banquillo de muertes
-    //si el peon llega al final, cambia a cualquier ficha a eleccion
-    //si haces ese movimiento, tu rey queda en jaque? -> como puedo hacer esto?
-    //enroque
-    //jaque
-    //jaque mate
-    //hay que implementar que no se puede matar al rey
-    //repetir
-
     public void principal() {
         boolean partida = true;
         boolean abandonar = false;
@@ -482,14 +472,13 @@ public class practica7 {
         return hiHaPeca;
     }
 
-    public void peçesCapturades(String peçaDesti, ArrayList<Character> banquetaMorts, char[][] taulell, int[] casellaDesti, String[] peçesBlanques, String[] peçesNegres, boolean blanquesBool) {
+    public void peçesCapturades(ArrayList<Character> banquetaMorts, char[][] taulell, int[] casellaDesti, char[] peçesBlanques, char[] peçesNegres, boolean blanquesBool) {
         String peçaDesti = peçaDesti(peçesBlanques, peçesNegres, blanquesBool, casellaDesti, taulell);
 
         if (peçaDesti.equals("enemiga")) {
             banquetaMorts.add(taulell[casellaDesti[0]][casellaDesti[1]]);
         }
 
-        //pensar en como hacer esto para implementarlo en la funcion
     }
 
     public boolean validarPeo(int[] casellaOrigen, int[] casellaDesti, boolean blanques, String peçaDesti, boolean peçaCami) {
